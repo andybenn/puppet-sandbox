@@ -1,3 +1,7 @@
 nodes.pp
 modules/*
 .vagrant
+packer/packer_cache/
+packer/builds/libvirt/
+packer/builds/virtualbox/
+
