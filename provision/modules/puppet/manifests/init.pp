@@ -52,4 +52,8 @@ class puppet(
     require => Package[ 'puppet' ],
   }
 
+  exec { 'enable_puppet_agent':
+    command => '/usr/bin/puppet agent --enable',
+    require => Service[ 'puppet' ],  
+  }
 }

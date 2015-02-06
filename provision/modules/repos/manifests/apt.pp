@@ -17,28 +17,30 @@
 #
 class repos::apt {
 
-  $puppetlabs_key = '4BD6EC30'
-
-  exec { 'apt_key_puppetlabs':
-    path    => '/bin:/usr/bin',
-    unless  => "/usr/bin/apt-key list | /bin/grep -q '${puppetlabs_key}'",
-    command => "apt-key adv --keyserver 'keyserver.ubuntu.com' --recv-keys '${puppetlabs_key}'",
-    before  => File[ 'puppetlabs.list' ],
+  exec { 'retrieve_puplabs_deb':
+    command     => "/usr/bin/wget -q https://apt.puppetlabs.com/puppetlabs-release-'${lsbdistcodename}'.deb -O /tmp/puppetlabs-release-'${lsbdistcodename}'.deb",
+    creates     => "/tmp/puppetlabs-release-'${lsbdistcodename}'.deb",
+  }
+ 
+  file{"/tmp/puppetlabs-release-'${lsbdistcodename}'.deb":
+  mode => 0755,
+  require => Exec["retrieve_puplabs_deb"],
   }
 
-  file { 'puppetlabs.list':
-    ensure  => present,
-    path    => '/etc/apt/sources.list.d/puppetlabs.list',
-    owner   => root,
-    group   => root,
-    mode    => '0644',
-    content => template('repos/puppetlabs.list.erb'),
+  exec { 'install_puppetlabs':
+    path    => '/bin:/usr/bin:/sbin/:/usr/local/sbin:/usr/sbin:/sbin',
+    onlyif  => "test -f /tmp/puppetlabs-release-'${lsbdistcodename}'.deb",
+    command => "/usr/bin/dpkg -i /tmp/puppetlabs-release-'${lsbdistcodename}'.deb",
+    subscribe  => File[ "/tmp/puppetlabs-release-'${lsbdistcodename}'.deb" ],
+  }
+
+  file{"/etc/apt/sources.list.d/puppetlabs.list":
+  require => Exec["apt_update"],
   }
 
   exec { 'apt_update':
+    path        => '/bin:/usr/bin:/sbin/:/usr/local/sbin:/usr/sbin:/sbin',
     command     => '/usr/bin/apt-get update',
-    subscribe   => File[ 'puppetlabs.list' ],
     refreshonly => true,
   }
-
 }

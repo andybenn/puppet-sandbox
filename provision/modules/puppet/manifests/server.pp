@@ -46,6 +46,7 @@ class puppet::server(
   package { 'puppetmaster':
     ensure => $ensure,
     name   => $package_name,
+  ##  notify  => Service[ 'puppetmaster' ],
   }
 
   package { 'puppet-lint':
@@ -60,7 +61,6 @@ class puppet::server(
     mode    => '0644',
     source  => 'puppet:///modules/puppet/puppet.conf',
     require => Package[ 'puppetmaster' ],
-    notify  => Service[ 'puppetmaster' ],
   }
 
   file { 'site.pp':
@@ -94,9 +94,10 @@ class puppet::server(
     source  => 'puppet:///modules/puppet/nodes.pp',
   }
 
-  service { 'puppetmaster':
-    enable => true,
-    ensure => running,
-  }
+#  service { 'puppetmaster':
+#    enable => true,
+#    ensure => running,
+#    require => Package[ 'puppetmaster' ],
+#  }
 
 }
